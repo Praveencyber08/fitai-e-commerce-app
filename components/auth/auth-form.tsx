@@ -9,22 +9,28 @@ import { useToast } from "@/components/providers/toast-provider"
 import { Button } from "@/components/ui/button"
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const { login } = useStore()
+  const { login, register } = useStore()
   const { toast } = useToast()
   const router = useRouter()
   const [showPw, setShowPw] = useState(false)
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const isLogin = mode === "login"
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const role = email.trim().toLowerCase() === "admin@fitai.com" ? "admin" : "customer"
-    login(email, isLogin ? undefined : name, role)
+    setSubmitting(true)
+    const result = isLogin ? await login(email, password) : await register(name, email, password)
+    setSubmitting(false)
+    if (!result.ok) {
+      toast(result.error ?? "Something went wrong.", "error")
+      return
+    }
     toast(isLogin ? "Welcome back!" : "Account created!", "success")
-    router.push(role === "admin" ? "/admin" : "/")
+    router.push(result.user?.role === "admin" ? "/admin" : "/")
   }
 
   const field =
@@ -102,8 +108,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             </button>
           </div>
         </div>
-        <Button type="submit" size="lg" className="w-full">
-          {isLogin ? "Sign in" : "Create account"}
+        <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+          {submitting ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
         </Button>
       </form>
 
@@ -115,7 +121,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       </p>
 
       <p className="mt-4 rounded-md bg-muted p-3 text-center text-xs text-muted-foreground">
-        Tip: sign in with <span className="font-medium text-foreground">admin@fitai.com</span> to access the admin dashboard.
+        Tip: sign in with <span className="font-medium text-foreground">admin@fitai.com</span> /{" "}
+        <span className="font-medium text-foreground">admin123</span> to access the admin dashboard.
       </p>
     </div>
   )

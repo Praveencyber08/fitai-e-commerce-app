@@ -18,10 +18,11 @@ const PAYMENT_METHODS = [
 ]
 
 export function CheckoutClient() {
-  const { cart, cartTotal, placeOrder, hydrated } = useStore()
+  const { cart, cartTotal, placeOrder, hydrated, user } = useStore()
   const { toast } = useToast()
   const router = useRouter()
   const [payment, setPayment] = useState("card")
+  const [placing, setPlacing] = useState(false)
   const [address, setAddress] = useState<Address>({
     fullName: "",
     phone: "",
@@ -47,9 +48,20 @@ export function CheckoutClient() {
     )
   }
 
-  function handlePlaceOrder(e: React.FormEvent) {
+  async function handlePlaceOrder(e: React.FormEvent) {
     e.preventDefault()
-    const order = placeOrder(address, payment)
+    if (!user) {
+      toast("Please sign in to place your order.", "error")
+      router.push("/login")
+      return
+    }
+    setPlacing(true)
+    const order = await placeOrder(address, payment)
+    setPlacing(false)
+    if (!order) {
+      toast("Could not place order. Please try again.", "error")
+      return
+    }
     toast("Order placed successfully!", "success")
     router.push(`/orders/${order.id}?new=1`)
   }
@@ -176,8 +188,8 @@ export function CheckoutClient() {
             <dd>{formatPrice(grandTotal)}</dd>
           </div>
         </dl>
-        <Button type="submit" size="lg" className="w-full">
-          Place Order
+        <Button type="submit" size="lg" className="w-full" disabled={placing}>
+          {placing ? "Placing order…" : "Place Order"}
         </Button>
       </aside>
     </form>

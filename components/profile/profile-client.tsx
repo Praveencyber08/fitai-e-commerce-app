@@ -41,8 +41,8 @@ export function ProfileClient() {
     { label: "Try-Ons", value: tryOnHistory.length, href: "/try-on", icon: Sparkles },
   ]
 
-  function handleLogout() {
-    logout()
+  async function handleLogout() {
+    await logout()
     router.push("/")
   }
 
