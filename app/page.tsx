@@ -3,13 +3,14 @@ import { Hero } from "@/components/home/hero"
 import { CategorySection } from "@/components/home/category-section"
 import { ProductSection } from "@/components/home/product-section"
 import { TryOnPromo } from "@/components/home/try-on-promo"
-import { PRODUCTS } from "@/lib/data/products"
+import { resolveProducts } from "@/lib/catalog"
 
-export default function HomePage() {
-  const trending = PRODUCTS.filter((p) => p.isTrending).slice(0, 8)
-  const trendingFilled = trending.length >= 4 ? trending : PRODUCTS.slice(0, 8)
-  const newArrivals = PRODUCTS.filter((p) => p.isNew).slice(0, 8)
-  const newFilled = newArrivals.length >= 4 ? newArrivals : PRODUCTS.slice(8, 16)
+export default async function HomePage() {
+  const products = await resolveProducts()
+  const trending = products.filter((p) => p.isTrending).slice(0, 8)
+  const trendingFilled = trending.length >= 4 ? trending : products.slice(0, 8)
+  const newArrivals = products.filter((p) => p.isNew).slice(0, 8)
+  const newFilled = newArrivals.length >= 4 ? newArrivals : products.slice(8, 16)
 
   return (
     <SiteShell>

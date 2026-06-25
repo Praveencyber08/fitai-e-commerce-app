@@ -2,15 +2,20 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import useSWR from "swr"
 import { Search } from "lucide-react"
 import { PRODUCTS } from "@/lib/data/products"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/format"
+import { fetcher } from "@/lib/fetcher"
+import type { Product } from "@/lib/types"
 
 export function AdminProductsTable() {
   const [query, setQuery] = useState("")
+  const { data } = useSWR<{ products: Product[] }>("/api/products", fetcher)
+  const catalog = data?.products && data.products.length > 0 ? data.products : PRODUCTS
 
-  const filtered = PRODUCTS.filter(
+  const filtered = catalog.filter(
     (p) =>
       p.name.toLowerCase().includes(query.toLowerCase()) ||
       p.brand.toLowerCase().includes(query.toLowerCase()) ||
@@ -22,7 +27,7 @@ export function AdminProductsTable() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-          <p className="text-sm text-muted-foreground">{PRODUCTS.length} products in catalog</p>
+          <p className="text-sm text-muted-foreground">{catalog.length} products in catalog</p>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

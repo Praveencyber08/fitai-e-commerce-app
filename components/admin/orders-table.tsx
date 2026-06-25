@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import useSWR from "swr"
 import { ADMIN_ORDERS } from "@/lib/data/admin"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice, formatDate } from "@/lib/format"
+import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
-import type { OrderStatus } from "@/lib/types"
+import type { Order, OrderStatus } from "@/lib/types"
 
 const FILTERS: ("all" | OrderStatus)[] = [
   "all",
@@ -26,13 +28,16 @@ const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
 
 export function AdminOrdersTable() {
   const [filter, setFilter] = useState<"all" | OrderStatus>("all")
-  const filtered = filter === "all" ? ADMIN_ORDERS : ADMIN_ORDERS.filter((o) => o.status === filter)
+  const { data } = useSWR<{ orders: Order[]; dbConfigured: boolean }>("/api/admin/orders", fetcher)
+
+  const orders = data?.orders && data.orders.length > 0 ? data.orders : ADMIN_ORDERS
+  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter)
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-        <p className="text-sm text-muted-foreground">{ADMIN_ORDERS.length} total orders</p>
+        <p className="text-sm text-muted-foreground">{orders.length} total orders</p>
       </div>
 
       <div className="flex flex-wrap gap-2">

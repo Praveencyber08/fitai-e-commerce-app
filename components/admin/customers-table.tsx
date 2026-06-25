@@ -1,14 +1,28 @@
 "use client"
 
+import useSWR from "swr"
 import { ADMIN_CUSTOMERS } from "@/lib/data/admin"
 import { formatPrice, formatDate } from "@/lib/format"
+import { fetcher } from "@/lib/fetcher"
+
+type CustomerRow = {
+  id: string
+  name: string
+  email: string
+  joinedAt: string
+  orders: number
+  spend: number
+}
 
 export function AdminCustomersTable() {
+  const { data } = useSWR<{ customers: CustomerRow[]; dbConfigured: boolean }>("/api/admin/customers", fetcher)
+  const customers = data?.customers && data.customers.length > 0 ? data.customers : ADMIN_CUSTOMERS
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-        <p className="text-sm text-muted-foreground">{ADMIN_CUSTOMERS.length} registered customers</p>
+        <p className="text-sm text-muted-foreground">{customers.length} registered customers</p>
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-card">
@@ -24,7 +38,7 @@ export function AdminCustomersTable() {
               </tr>
             </thead>
             <tbody>
-              {ADMIN_CUSTOMERS.map((c) => (
+              {customers.map((c) => (
                 <tr key={c.id} className="border-b last:border-0">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
