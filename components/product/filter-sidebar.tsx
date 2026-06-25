@@ -46,6 +46,8 @@ export function FilterSidebar({
     })
   }
 
+  const priceValue = Number.isFinite(filters.maxPrice) ? filters.maxPrice : priceCeiling
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -75,13 +77,13 @@ export function FilterSidebar({
         ))}
       </FilterGroup>
 
-      <FilterGroup title={`Price up to ₹${filters.maxPrice.toLocaleString("en-IN")}`}>
+      <FilterGroup title={`Price up to ₹${priceValue.toLocaleString("en-IN")}`}>
         <input
           type="range"
           min={500}
           max={priceCeiling}
           step={100}
-          value={filters.maxPrice}
+          value={priceValue}
           onChange={(e) => setFilters({ ...filters, maxPrice: Number(e.target.value) })}
           className="w-full accent-[var(--primary)]"
         />

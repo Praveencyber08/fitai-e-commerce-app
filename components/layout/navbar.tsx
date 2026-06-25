@@ -143,7 +143,10 @@ export function Navbar() {
                     )}
                     <div className="my-1 h-px bg-border" />
                     <button
-                      onClick={() => logout()}
+                      onClick={async () => {
+                        await logout()
+                        router.push("/")
+                      }}
                       className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-muted"
                     >
                       <LogOut className="size-4" /> Logout

@@ -1,17 +1,14 @@
 import { notFound } from "next/navigation"
 import { SiteShell } from "@/components/layout/site-shell"
 import { ProductDetail } from "@/components/product/product-detail"
-import { getProduct, getRelated, PRODUCTS } from "@/lib/data/products"
-
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ id: p.id }))
-}
+import { resolveProduct, resolveProducts, relatedFrom } from "@/lib/catalog"
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const product = getProduct(id)
+  const product = await resolveProduct(id)
   if (!product) notFound()
-  const related = getRelated(product)
+  const all = await resolveProducts()
+  const related = relatedFrom(all, product)
 
   return (
     <SiteShell>

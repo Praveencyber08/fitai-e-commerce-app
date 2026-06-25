@@ -1,11 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import useSWR from "swr"
 import { SlidersHorizontal, X } from "lucide-react"
 import type { Category, Product } from "@/lib/types"
 import { PRODUCTS } from "@/lib/data/products"
 import { ProductGrid } from "@/components/product/product-grid"
 import { FilterSidebar, type Filters } from "@/components/product/filter-sidebar"
+import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 
 type SortOption = "popular" | "price_low" | "price_high" | "rating" | "discount" | "newest"
@@ -19,9 +21,6 @@ const SORT_LABELS: Record<SortOption, string> = {
   newest: "What's New",
 }
 
-const PRICE_CEILING = Math.max(...PRODUCTS.map((p) => p.price))
-const ALL_BRANDS = Array.from(new Set(PRODUCTS.map((p) => p.brand))).sort()
-
 export function ProductListing({
   initialCategory,
   query,
@@ -29,17 +28,23 @@ export function ProductListing({
   initialCategory?: Category
   query?: string
 }) {
+  const { data } = useSWR<{ products: Product[] }>("/api/products", fetcher)
+  const catalog = data?.products && data.products.length > 0 ? data.products : PRODUCTS
+
+  const priceCeiling = useMemo(() => Math.max(...catalog.map((p) => p.price)), [catalog])
+  const allBrands = useMemo(() => Array.from(new Set(catalog.map((p) => p.brand))).sort(), [catalog])
+
   const [filters, setFilters] = useState<Filters>({
     categories: initialCategory ? [initialCategory] : [],
     brands: [],
     minRating: 0,
-    maxPrice: PRICE_CEILING,
+    maxPrice: Number.POSITIVE_INFINITY,
   })
   const [sort, setSort] = useState<SortOption>("popular")
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   const filtered = useMemo(() => {
-    let result: Product[] = PRODUCTS
+    let result: Product[] = catalog
     if (query) {
       const q = query.toLowerCase()
       result = result.filter(
@@ -76,7 +81,7 @@ export function ProductListing({
         sorted.sort((a, b) => b.ratingCount - a.ratingCount)
     }
     return sorted
-  }, [filters, sort, query])
+  }, [filters, sort, query, catalog])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -110,7 +115,7 @@ export function ProductListing({
 
       <div className="flex gap-8">
         <aside className="hidden w-60 shrink-0 lg:block">
-          <FilterSidebar filters={filters} setFilters={setFilters} brands={ALL_BRANDS} priceCeiling={PRICE_CEILING} />
+          <FilterSidebar filters={filters} setFilters={setFilters} brands={allBrands} priceCeiling={priceCeiling} />
         </aside>
 
         <div className="flex-1">
@@ -136,7 +141,7 @@ export function ProductListing({
                 <X className="size-5" />
               </button>
             </div>
-            <FilterSidebar filters={filters} setFilters={setFilters} brands={ALL_BRANDS} priceCeiling={PRICE_CEILING} />
+            <FilterSidebar filters={filters} setFilters={setFilters} brands={allBrands} priceCeiling={priceCeiling} />
             <button
               onClick={() => setMobileFiltersOpen(false)}
               className={cn("mt-6 w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground")}
