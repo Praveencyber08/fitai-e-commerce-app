@@ -105,11 +105,11 @@ export function AdminDashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border bg-card p-5 lg:col-span-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-xl border bg-card p-4 md:col-span-2">
           <h2 className="font-semibold">Revenue Trend</h2>
           <p className="mb-4 text-sm text-muted-foreground">Monthly revenue over time</p>
-          <ChartContainer config={revenueConfig} className="h-64 w-full">
+          <ChartContainer config={revenueConfig} className="h-48 w-full md:h-64">
             <AreaChart data={salesByMonth} margin={{ left: 4, right: 4 }}>
               <defs>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -131,10 +131,10 @@ export function AdminDashboard() {
           </ChartContainer>
         </div>
 
-        <div className="rounded-xl border bg-card p-5">
+        <div className="rounded-xl border bg-card p-4">
           <h2 className="font-semibold">Sales by Category</h2>
           <p className="mb-4 text-sm text-muted-foreground">Share of total sales</p>
-          <ChartContainer config={{}} className="mx-auto h-48 w-full">
+          <ChartContainer config={{}} className="mx-auto h-48 w-full md:h-56">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent nameKey="category" />} />
               <Pie data={categorySplit} dataKey="value" nameKey="category" innerRadius={45} strokeWidth={2}>
@@ -158,10 +158,10 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card p-5">
+      <div className="rounded-xl border bg-card p-4">
         <h2 className="font-semibold">Orders per Month</h2>
         <p className="mb-4 text-sm text-muted-foreground">Order volume trend</p>
-        <ChartContainer config={ordersConfig} className="h-56 w-full">
+        <ChartContainer config={ordersConfig} className="h-40 w-full md:h-56">
           <BarChart data={salesByMonth} margin={{ left: 4, right: 4 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
@@ -173,32 +173,32 @@ export function AdminDashboard() {
 
       {/* Recent orders */}
       <div className="rounded-xl border bg-card">
-        <div className="flex items-center justify-between border-b p-5">
+        <div className="flex items-center justify-between border-b p-4 md:p-5">
           <h2 className="font-semibold">Recent Orders</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
-                <th className="px-5 py-3 font-medium">Order ID</th>
-                <th className="px-5 py-3 font-medium">Customer</th>
-                <th className="px-5 py-3 font-medium">Date</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 text-right font-medium">Total</th>
+                <th className="px-4 py-3 font-medium md:px-5">Order ID</th>
+                <th className="px-4 py-3 font-medium md:px-5">Customer</th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell md:px-5">Date</th>
+                <th className="px-4 py-3 font-medium md:px-5">Status</th>
+                <th className="px-4 py-3 text-right font-medium md:px-5">Total</th>
               </tr>
             </thead>
             <tbody>
               {recentOrders.slice(0, 6).map((o) => (
                 <tr key={o.id} className="border-b last:border-0">
-                  <td className="px-5 py-3 font-medium">#{o.id}</td>
-                  <td className="px-5 py-3">{o.address.fullName}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{formatDate(o.placedAt)}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 py-3 font-medium md:px-5">#{o.id}</td>
+                  <td className="px-4 py-3 md:px-5">{o.address.fullName}</td>
+                  <td className="hidden px-4 py-3 text-muted-foreground md:table-cell md:px-5">{formatDate(o.placedAt)}</td>
+                  <td className="px-4 py-3 md:px-5">
                     <Badge variant={statusVariant[o.status]} className="capitalize">
                       {o.status.replace(/_/g, " ")}
                     </Badge>
                   </td>
-                  <td className="px-5 py-3 text-right font-medium">{formatPrice(o.total)}</td>
+                  <td className="px-4 py-3 text-right font-medium md:px-5">{formatPrice(o.total)}</td>
                 </tr>
               ))}
             </tbody>
