@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server"
 import { isDbConfigured } from "@/lib/db"
 import { getAllProducts } from "@/lib/queries"
+import { PRODUCTS } from "@/lib/data/products"
 
 export const runtime = "nodejs"
 
 export async function GET() {
-  if (!isDbConfigured()) {
-    return NextResponse.json({ error: "Database not configured." }, { status: 503 })
-  }
+  const dbConfigured = isDbConfigured()
+  
   try {
+    if (!dbConfigured) {
+      console.log("[v0] Database not configured, using mock data")
+      return NextResponse.json({ products: PRODUCTS, dbConfigured: false })
+    }
+    
     const products = await getAllProducts()
-    return NextResponse.json({ products })
+    return NextResponse.json({ products, dbConfigured: true })
   } catch (err) {
-    console.error("[v0] products list error:", err)
-    return NextResponse.json({ error: "Could not load products." }, { status: 500 })
+    console.error("[v0] products list error:", err instanceof Error ? err.message : err)
+    console.log("[v0] Falling back to mock data")
+    return NextResponse.json({ products: PRODUCTS, dbConfigured: false, error: "Using mock data" })
   }
 }
