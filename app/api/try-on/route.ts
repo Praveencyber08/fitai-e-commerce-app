@@ -30,6 +30,9 @@ export async function POST(req: Request) {
   }
 
   try {
+    console.log("[v0] try-on starting. Garment:", garmentName, "URL:", garmentUrl)
+    console.log("[v0] env AI_GATEWAY_API_KEY exists:", !!process.env.AI_GATEWAY_API_KEY)
+
     const result = await generateText({
       model: "google/gemini-3.1-flash-image-preview",
       providerOptions: {
@@ -54,23 +57,30 @@ export async function POST(req: Request) {
       ],
     })
 
+    console.log("[v0] generateText succeeded, checking for image file")
     const file = result.files?.find((f) => f.mediaType?.startsWith("image/"))
 
     if (!file) {
+      console.log("[v0] no image file in result, returning error")
       return Response.json(
         { error: "The model did not return an image. Please try again with a clearer full-body photo." },
         { status: 502 },
       )
     }
 
+    console.log("[v0] image file found, creating data URL")
     const dataUrl = `data:${file.mediaType};base64,${file.base64}`
     return Response.json({ image: dataUrl })
   } catch (err) {
-    console.log("[v0] try-on generation error:", err instanceof Error ? err.message : err)
+    console.error("[v0] try-on generation error:", {
+      message: err instanceof Error ? err.message : String(err),
+      error: err,
+    })
     return Response.json(
       {
         error:
           "AI try-on is not available. Connect the Vercel AI Gateway (or set AI_GATEWAY_API_KEY) to enable real generation.",
+        details: err instanceof Error ? err.message : String(err),
       },
       { status: 503 },
     )
