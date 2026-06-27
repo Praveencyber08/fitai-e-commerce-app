@@ -1,12 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import useSWR from "swr"
+import useSWR, { mutate } from "swr"
 import { ADMIN_ORDERS } from "@/lib/data/admin"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice, formatDate } from "@/lib/format"
 import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/components/providers/toast-provider"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { Order, OrderStatus } from "@/lib/types"
 
 const FILTERS: ("all" | OrderStatus)[] = [
@@ -27,11 +35,32 @@ const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
 }
 
 export function AdminOrdersTable() {
+  const { toast } = useToast()
   const [filter, setFilter] = useState<"all" | OrderStatus>("all")
+  const [updating, setUpdating] = useState<string | null>(null)
   const { data } = useSWR<{ orders: Order[]; dbConfigured: boolean }>("/api/admin/orders", fetcher)
 
   const orders = data?.orders && data.orders.length > 0 ? data.orders : ADMIN_ORDERS
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter)
+
+  async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
+    setUpdating(orderId)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error("Failed to update")
+      await mutate("/api/admin/orders")
+      toast("Order status updated", "success")
+    } catch (error) {
+      console.error("[v0] update error:", error)
+      toast("Failed to update order", "error")
+    } finally {
+      setUpdating(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -78,9 +107,22 @@ export function AdminOrdersTable() {
                   <td className="px-5 py-3 text-muted-foreground">{formatDate(o.placedAt)}</td>
                   <td className="px-5 py-3 text-muted-foreground">{o.paymentMethod}</td>
                   <td className="px-5 py-3">
-                    <Badge variant={statusVariant[o.status]} className="capitalize">
-                      {o.status.replace(/_/g, " ")}
-                    </Badge>
+                    <Select
+                      value={o.status}
+                      onValueChange={(value) => updateOrderStatus(o.id, value as OrderStatus)}
+                      disabled={updating === o.id}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </td>
                   <td className="px-5 py-3 text-right font-medium">{formatPrice(o.total)}</td>
                 </tr>

@@ -182,9 +182,24 @@ export function TryOnClient({ initialProductId }: { initialProductId?: string })
             ) : result ? (
               <Image src={result || "/placeholder.svg"} alt="Virtual try-on result" fill className="object-cover" />
             ) : error ? (
-              <div className="flex flex-col items-center gap-2 px-4 text-center text-muted-foreground">
-                <ImageIcon className="h-8 w-8" />
-                <span className="text-sm">{error}</span>
+              <div className="flex flex-col items-center gap-2 px-4 text-center">
+                <ImageIcon className="h-8 w-8 text-destructive" />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-destructive">
+                    {error.includes("credit card") ? "AI Gateway Billing Required" : "Try-On Generation Failed"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{error}</p>
+                  {error.includes("credit card") && (
+                    <a
+                      href="https://vercel.com/dashboard/settings/billing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-xs font-medium text-primary hover:underline"
+                    >
+                      Add Payment Method →
+                    </a>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2 px-4 text-center text-muted-foreground">
