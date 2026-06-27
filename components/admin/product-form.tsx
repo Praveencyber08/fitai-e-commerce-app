@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X } from "lucide-react"
+import { X, Upload, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/providers/toast-provider"
 import type { Product } from "@/lib/types"
@@ -34,6 +34,33 @@ export function ProductForm({
   const [colors, setColors] = useState<string[]>(product?.colors || [])
   const [isTrending, setIsTrending] = useState(product?.isTrending || false)
   const [isNew, setIsNew] = useState(product?.isNew || false)
+  const [uploading, setUploading] = useState(false)
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error('Upload failed')
+      const data = await response.json()
+      setImage(data.url)
+      toast('Image uploaded successfully', 'success')
+    } catch (error) {
+      console.error('[v0] upload error:', error)
+      toast('Image upload failed', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -154,15 +181,41 @@ export function ProductForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Primary Image URL *</label>
-        <input
-          type="url"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          placeholder="https://..."
-        />
-        {image && <img src={image} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />}
+        <label className="block text-sm font-medium mb-2">Product Image *</label>
+        <div className="relative">
+          <input
+            type="file"
+            id="image-upload"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={uploading}
+            className="hidden"
+          />
+          <label
+            htmlFor="image-upload"
+            className="flex items-center justify-center w-full p-6 border-2 border-dashed border-input rounded-lg cursor-pointer hover:border-primary transition-colors"
+          >
+            <div className="text-center">
+              {image ? (
+                <div className="space-y-2">
+                  <img src={image} alt="preview" className="h-32 w-32 rounded-md object-cover mx-auto" />
+                  <p className="text-xs text-muted-foreground">Click to change image</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                  <p className="text-sm font-medium">Drag and drop image here</p>
+                  <p className="text-xs text-muted-foreground">or click to select</p>
+                </div>
+              )}
+            </div>
+          </label>
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-lg">
+              <p className="text-sm font-medium">Uploading...</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
