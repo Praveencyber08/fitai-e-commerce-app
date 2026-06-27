@@ -47,6 +47,7 @@ interface Persisted {
   wishlist: Product[]
   orders: Order[]
   tryOnHistory: TryOnResult[]
+  user?: User | null
 }
 
 function daysFromNow(n: number) {
@@ -109,6 +110,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (me.user) {
           setUser(me.user)
           await syncFromServer()
+        } else if (guest?.user) {
+          // Restore guest auth state from localStorage
+          setUser(guest.user)
+          setCart(guest.cart ?? [])
+          setWishlist(guest.wishlist ?? [])
+          setOrders(guest.orders ?? [])
+          setTryOnHistory(guest.tryOnHistory ?? [])
         } else if (guest) {
           setCart(guest.cart ?? [])
           setWishlist(guest.wishlist ?? [])
@@ -116,7 +124,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           setTryOnHistory(guest.tryOnHistory ?? [])
         }
       } catch {
-        if (guest) {
+        if (guest?.user) {
+          setUser(guest.user)
+          setCart(guest.cart ?? [])
+          setWishlist(guest.wishlist ?? [])
+          setOrders(guest.orders ?? [])
+          setTryOnHistory(guest.tryOnHistory ?? [])
+        } else if (guest) {
           setCart(guest.cart ?? [])
           setWishlist(guest.wishlist ?? [])
           setOrders(guest.orders ?? [])
@@ -131,9 +145,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ----- persist guest state (only when not server-backed) -----
   useEffect(() => {
     if (!hydrated || serverMode) return
-    const data: Persisted = { cart, wishlist, orders, tryOnHistory }
+    const data: Persisted = { cart, wishlist, orders, tryOnHistory, user }
     localStorage.setItem(LS_KEY, JSON.stringify(data))
-  }, [cart, wishlist, orders, tryOnHistory, hydrated, serverMode])
+  }, [cart, wishlist, orders, tryOnHistory, user, hydrated, serverMode])
 
   // ----- cart -----
   const addToCart = useCallback((product: Product, size: string, quantity = 1) => {
