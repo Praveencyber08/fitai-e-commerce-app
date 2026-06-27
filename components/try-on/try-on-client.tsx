@@ -14,7 +14,7 @@ import type { Product } from "@/lib/types"
 const TRYABLE = PRODUCTS.filter((p) => p.category !== "accessories" && p.category !== "footwear")
 
 export function TryOnClient({ initialProductId }: { initialProductId?: string }) {
-  const { addTryOn, tryOnHistory } = useStore()
+  const { addTryOn, addToCart, tryOnHistory } = useStore()
   const { toast } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -124,27 +124,44 @@ export function TryOnClient({ initialProductId }: { initialProductId?: string })
             </span>
             <h2 className="font-semibold">Choose an outfit</h2>
           </div>
-          <div className="grid max-h-[360px] grid-cols-3 gap-2 overflow-auto pr-1">
-            {TRYABLE.map((p) => (
+          {garment ? (
+            <div className="space-y-3">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-muted">
+                <Image src={garment.image || "/placeholder.svg"} alt={garment.name} fill className="object-cover" sizes="120px" />
+              </div>
+              <div className="space-y-1 text-sm">
+                <p className="font-medium text-foreground">{garment.brand}</p>
+                <p className="line-clamp-2 text-xs text-muted-foreground">{garment.name}</p>
+              </div>
               <button
-                key={p.id}
                 onClick={() => {
-                  setGarment(p)
+                  setGarment(null)
                   setResult(null)
                 }}
-                className={cn(
-                  "relative aspect-[3/4] overflow-hidden rounded-md border-2 bg-muted transition-all",
-                  garment?.id === p.id ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border",
-                )}
+                className="w-full rounded-md border border-input py-2 text-xs font-medium transition-colors hover:bg-muted"
               >
-                <Image src={p.image || "/placeholder.svg"} alt={p.name} fill className="object-cover" sizes="120px" />
+                Change outfit
               </button>
-            ))}
-          </div>
-          {garment && (
-            <p className="text-sm text-muted-foreground">
-              Selected: <span className="font-medium text-foreground">{garment.name}</span>
-            </p>
+            </div>
+          ) : (
+            <div className="grid max-h-[360px] grid-cols-3 gap-2 overflow-auto pr-1">
+              {TRYABLE.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setGarment(p)
+                    setResult(null)
+                  }}
+                  className="group relative aspect-[3/4] overflow-hidden rounded-md border-2 border-transparent bg-muted transition-all hover:border-border"
+                  title={`${p.brand} ${p.name}`}
+                >
+                  <Image src={p.image || "/placeholder.svg"} alt={p.name} fill className="object-cover" sizes="120px" />
+                  <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="mb-2 text-center text-xs font-medium text-white">Select</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -204,11 +221,27 @@ export function TryOnClient({ initialProductId }: { initialProductId?: string })
           )}
         </Button>
         {garment && result && (
-          <Button asChild variant="ghost">
-            <Link href={`/products/${garment.id}`}>
-              <ShoppingBag className="mr-1 h-4 w-4" /> Shop this look
-            </Link>
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            <Button asChild className="gap-2">
+              <Link href={`/products/${garment.id}`}>
+                <ShoppingBag className="h-4 w-4" /> Buy Now
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                addToCart({
+                  productId: garment.id,
+                  quantity: 1,
+                  size: garment.sizes[0] || "M",
+                  price: garment.price,
+                })
+                toast("Added to cart!", "success")
+              }}
+            >
+              Add to Cart
+            </Button>
+          </div>
         )}
       </div>
 
