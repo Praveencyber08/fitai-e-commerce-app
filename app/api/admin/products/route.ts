@@ -18,39 +18,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, brand, description, category, subCategory, price, mrp, sizes, colors, image } = body
+    const { name, description, category, price, stock, image_url } = body
 
-    if (!name || !brand || !category || !price) {
+    if (!name || !category || !price) {
       return NextResponse.json({ error: "Missing required fields." }, { status: 400 })
     }
 
     const id = nanoid()
     const result = await query<ProductRow>(
       `INSERT INTO products (
-        id, name, brand, description, category, sub_category, price, mrp, discount_percent,
-        image, sizes, colors, in_stock, is_trending, is_new, rating, rating_count, stock
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-      RETURNING id, name, brand, description, category, sub_category, price, mrp, discount_percent,
-                rating, rating_count, image, images, sizes, colors, tags, stock, in_stock, is_trending, is_new`,
+        id, name, description, category, price, stock, image_url, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      RETURNING id, name, description, category, price, image_url, stock, created_at`,
       [
         id,
         String(name).trim(),
-        String(brand).trim(),
         description ? String(description).trim() : null,
         String(category).trim(),
-        subCategory ? String(subCategory).trim() : null,
         Number(price),
-        Number(mrp) || Number(price),
-        Math.round(((Number(mrp) || Number(price)) - Number(price)) / (Number(mrp) || Number(price)) * 100) || 0,
-        String(image).trim(),
-        sizes && Array.isArray(sizes) ? sizes.join(",") : null,
-        colors && Array.isArray(colors) ? colors.join(",") : null,
-        true,
-        false,
-        true,
-        0,
-        0,
-        10,
+        Number(stock) || 0,
+        image_url ? String(image_url).trim() : null,
       ],
     )
 
