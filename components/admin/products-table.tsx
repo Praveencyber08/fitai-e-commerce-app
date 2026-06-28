@@ -26,7 +26,6 @@ export function AdminProductsTable() {
   const filtered = catalog.filter(
     (p) =>
       p.name.toLowerCase().includes(query.toLowerCase()) ||
-      p.brand.toLowerCase().includes(query.toLowerCase()) ||
       p.category.toLowerCase().includes(query.toLowerCase()),
   )
 

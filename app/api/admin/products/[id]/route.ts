@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const { id } = await params
     const body = await req.json()
-    const { name, brand, description, category, subCategory, price, mrp, sizes, colors, image, isTrending, isNew } = body
+    const { name, description, category, price, stock, image_url } = body
 
     const updates: string[] = []
     const values: unknown[] = []
@@ -28,10 +28,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updates.push(`name = $${paramIndex++}`)
       values.push(String(name).trim())
     }
-    if (brand !== undefined) {
-      updates.push(`brand = $${paramIndex++}`)
-      values.push(String(brand).trim())
-    }
     if (description !== undefined) {
       updates.push(`description = $${paramIndex++}`)
       values.push(description ? String(description).trim() : null)
@@ -40,37 +36,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updates.push(`category = $${paramIndex++}`)
       values.push(String(category).trim())
     }
-    if (subCategory !== undefined) {
-      updates.push(`sub_category = $${paramIndex++}`)
-      values.push(subCategory ? String(subCategory).trim() : null)
-    }
     if (price !== undefined) {
       updates.push(`price = $${paramIndex++}`)
       values.push(Number(price))
     }
-    if (mrp !== undefined) {
-      updates.push(`mrp = $${paramIndex++}`)
-      values.push(Number(mrp))
+    if (stock !== undefined) {
+      updates.push(`stock = $${paramIndex++}`)
+      values.push(Number(stock))
     }
-    if (image !== undefined) {
-      updates.push(`image = $${paramIndex++}`)
-      values.push(String(image).trim())
-    }
-    if (sizes !== undefined) {
-      updates.push(`sizes = $${paramIndex++}`)
-      values.push(sizes && Array.isArray(sizes) ? sizes.join(",") : null)
-    }
-    if (colors !== undefined) {
-      updates.push(`colors = $${paramIndex++}`)
-      values.push(colors && Array.isArray(colors) ? colors.join(",") : null)
-    }
-    if (isTrending !== undefined) {
-      updates.push(`is_trending = $${paramIndex++}`)
-      values.push(Boolean(isTrending))
-    }
-    if (isNew !== undefined) {
-      updates.push(`is_new = $${paramIndex++}`)
-      values.push(Boolean(isNew))
+    if (image_url !== undefined) {
+      updates.push(`image_url = $${paramIndex++}`)
+      values.push(image_url ? String(image_url).trim() : null)
     }
 
     if (!updates.length) {
@@ -79,8 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     values.push(id)
     const sql = `UPDATE products SET ${updates.join(", ")} WHERE id = $${paramIndex++} 
-                 RETURNING id, name, brand, description, category, sub_category, price, mrp, discount_percent,
-                           rating, rating_count, image, images, sizes, colors, tags, stock, in_stock, is_trending, is_new`
+                 RETURNING id, name, description, category, price, image_url, stock, created_at`
 
     const result = await query<ProductRow>(sql, values)
     if (!result.rows.length) {
@@ -106,8 +81,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const { id } = await params
 
-    await query("DELETE FROM cart_items WHERE product_id = $1", [id])
-    await query("DELETE FROM wishlist_items WHERE product_id = $1", [id])
+    // Delete product from database
     await query("DELETE FROM products WHERE id = $1", [id])
 
     return NextResponse.json({ success: true })
