@@ -1,27 +1,31 @@
 import { Pool, type ClientBase } from "pg"
 import { DsqlSigner } from "@aws-sdk/dsql-signer"
-import { awsCredentialsProvider } from "@vercel/functions/oidc"
 import { attachDatabasePool } from "@vercel/functions"
 
 const globalForPool = globalThis as unknown as { __fitaiPool?: Pool }
 
 function createPool(): Pool {
+  const pghost = process.env.PGHOST
+  const region = process.env.DSQL_REGION || process.env.AWS_REGION || "us-east-1"
+  const accessKeyId = process.env.DSQL_ACCESS_KEY_ID
+  const secretAccessKey = process.env.DSQL_SECRET_ACCESS_KEY
+
+  // Use DSQL credentials to create auth token
   const signer = new DsqlSigner({
-    credentials: awsCredentialsProvider({
-      roleArn: process.env.AWS_ROLE_ARN!,
-      clientConfig: { region: process.env.AWS_REGION },
-    }),
-    region: process.env.AWS_REGION,
-    hostname: process.env.PGHOST,
+    credentials: {
+      accessKeyId: accessKeyId || "",
+      secretAccessKey: secretAccessKey || "",
+    },
+    region: region,
+    hostname: pghost,
     expiresIn: 900,
   })
 
   const pool = new Pool({
-    host: process.env.PGHOST,
+    host: pghost,
     user: process.env.PGUSER || "admin",
     database: process.env.PGDATABASE || "postgres",
-    // IAM auth token, regenerated per new connection (valid ~15 min).
-    password: () => signer.getDbConnectAdminAuthToken(),
+    password: async () => signer.getDbConnectAdminAuthToken(),
     port: 5432,
     ssl: true,
     max: 20,
@@ -39,7 +43,11 @@ function getPool(): Pool {
 
 /** True when the Aurora DSQL connection env vars are present. */
 export function isDbConfigured(): boolean {
-  return Boolean(process.env.PGHOST && process.env.AWS_REGION && process.env.AWS_ROLE_ARN)
+  return Boolean(
+    process.env.PGHOST &&
+      process.env.DSQL_ACCESS_KEY_ID &&
+      process.env.DSQL_SECRET_ACCESS_KEY
+  )
 }
 
 // Single-query helper.
