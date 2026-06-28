@@ -8,49 +8,54 @@ const num = (v: unknown): number => (typeof v === "string" ? Number.parseFloat(v
 export interface ProductRow {
   id: string
   name: string
-  brand: string
-  description: string | null
+  brand?: string
+  description?: string | null
   category: string
-  sub_category: string | null
+  sub_category?: string | null
   price: string | number
-  mrp: string | number
-  discount_percent: number
-  rating: string | number
-  rating_count: number
-  image: string
-  images: string | null
-  sizes: string | null
-  colors: string | null
-  tags: string | null
-  stock: number
-  in_stock: boolean
-  is_trending: boolean
-  is_new: boolean
+  mrp?: string | number
+  discount_percent?: number
+  rating?: string | number
+  rating_count?: number
+  image?: string
+  image_url?: string
+  images?: string | null
+  sizes?: string | null
+  colors?: string | null
+  tags?: string | null
+  stock?: number
+  in_stock?: boolean
+  is_trending?: boolean
+  is_new?: boolean
+  created_at?: string
 }
 
 export function mapProduct(r: ProductRow): Product {
   const images = splitList(r.images)
+  const imageUrl = r.image_url || r.image
   return {
     id: r.id,
     name: r.name,
-    brand: r.brand,
+    brand: r.brand ?? "FitAI",
     description: r.description ?? "",
     price: num(r.price),
-    mrp: num(r.mrp),
+    mrp: num(r.mrp ?? r.price),
     discountPercent: r.discount_percent ?? 0,
-    rating: num(r.rating),
+    rating: r.rating ? num(r.rating) : 0,
     ratingCount: r.rating_count ?? 0,
     category: r.category as Category,
     subCategory: r.sub_category ?? "",
-    image: r.image,
-    images: images.length ? images : [r.image],
+    image: imageUrl,
+    image_url: imageUrl,
+    images: images.length ? images : imageUrl ? [imageUrl] : [],
     sizes: splitList(r.sizes),
     colors: splitList(r.colors),
     tags: splitList(r.tags),
-    inStock: r.in_stock,
-    stock: r.stock,
-    isNew: r.is_new,
-    isTrending: r.is_trending,
+    inStock: r.in_stock !== false,
+    stock: r.stock ?? 0,
+    isNew: r.is_new ?? false,
+    isTrending: r.is_trending ?? false,
+    created_at: r.created_at,
   }
 }
 

@@ -26,7 +26,6 @@ export function AdminProductsTable() {
   const filtered = catalog.filter(
     (p) =>
       p.name.toLowerCase().includes(query.toLowerCase()) ||
-      p.brand.toLowerCase().includes(query.toLowerCase()) ||
       p.category.toLowerCase().includes(query.toLowerCase()),
   )
 
@@ -38,12 +37,14 @@ export function AdminProductsTable() {
         response = await fetch(`/api/admin/products/${editingProduct.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(formData),
         })
       } else {
         response = await fetch("/api/admin/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(formData),
         })
       }
@@ -68,7 +69,10 @@ export function AdminProductsTable() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
     try {
-      const response = await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
+      const response = await fetch(`/api/admin/products/${id}`, { 
+        method: "DELETE",
+        credentials: "include"
+      })
       if (!response.ok) throw new Error("Delete failed")
       toast("Product deleted.", "success")
       mutate()

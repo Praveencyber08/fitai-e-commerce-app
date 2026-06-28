@@ -20,11 +20,13 @@ export function ProductCard({ product }: { product: Product }) {
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
       <Link href={`/products/${product.id}`} className="relative block aspect-[3/4] overflow-hidden bg-muted">
         <Image
-          src={product.image || "/placeholder.svg"}
+          src={product.image_url || product.image || "/placeholder.svg"}
           alt={product.name}
           fill
           sizes="(max-width:768px) 50vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
+          priority={false}
+          unoptimized={true}
         />
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {product.isNew && <Badge>New</Badge>}
@@ -45,17 +47,16 @@ export function ProductCard({ product }: { product: Product }) {
       </button>
 
       <div className="flex flex-1 flex-col p-3">
-        <p className="text-xs font-semibold text-muted-foreground">{product.brand}</p>
+        <p className="text-xs font-semibold text-muted-foreground capitalize">{product.category}</p>
         <Link href={`/products/${product.id}`} className="mt-0.5">
           <h3 className="line-clamp-1 text-sm font-medium text-foreground">{product.name}</h3>
         </Link>
         <div className="mt-1.5">
-          <Rating value={product.rating} count={product.ratingCount} />
+          <Rating value={product.rating || 0} count={product.ratingCount || 0} />
         </div>
         <div className="mt-2 flex items-center gap-2">
           <span className="text-sm font-bold">{formatINR(product.price)}</span>
-          <span className="text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
-          <span className="text-xs font-semibold text-primary">{product.discountPercent}% OFF</span>
+          <span className="text-xs font-semibold text-green-500">In Stock</span>
         </div>
         <Link
           href={`/try-on?product=${product.id}`}

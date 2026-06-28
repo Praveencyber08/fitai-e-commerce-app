@@ -3,24 +3,26 @@ export type Category = "men" | "women" | "kids" | "footwear" | "accessories" | "
 export interface Product {
   id: string
   name: string
-  brand: string
-  description: string
+  brand?: string
+  description?: string
   price: number
-  mrp: number
-  discountPercent: number
-  rating: number
-  ratingCount: number
+  mrp?: number
+  discountPercent?: number
+  rating?: number
+  ratingCount?: number
   category: Category
-  subCategory: string
-  image: string
-  images: string[]
-  sizes: string[]
-  colors: string[]
-  tags: string[]
-  inStock: boolean
-  stock: number
+  subCategory?: string
+  image?: string
+  image_url?: string
+  images?: string[]
+  sizes?: string[]
+  colors?: string[]
+  tags?: string[]
+  inStock?: boolean
+  stock?: number
   isNew?: boolean
   isTrending?: boolean
+  created_at?: string
 }
 
 export interface CartItem {
