@@ -17,8 +17,10 @@ export async function GET() {
     const products = await getAllProducts()
     return NextResponse.json({ products, dbConfigured: true })
   } catch (err) {
-    console.error("[v0] products list error:", err instanceof Error ? err.message : err)
+    const errorMsg = err instanceof Error ? err.message : String(err)
+    console.error("[v0] products list error:", errorMsg)
+    console.error("[v0] Stack:", err instanceof Error ? err.stack : "N/A")
     console.log("[v0] Falling back to mock data, but DB is configured")
-    return NextResponse.json({ products: PRODUCTS, dbConfigured: true, error: "Connection failed, using mock data" })
+    return NextResponse.json({ products: PRODUCTS, dbConfigured: true, error: `DB Error: ${errorMsg}` })
   }
 }

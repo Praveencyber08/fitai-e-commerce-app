@@ -3,8 +3,7 @@ import { query } from "@/lib/db"
 import { mapProduct, type ProductRow } from "@/lib/mappers"
 import type { Product } from "@/lib/types"
 
-const PRODUCT_COLUMNS = `id, name, brand, description, category, sub_category, price, mrp, discount_percent,
-  rating, rating_count, image, images, sizes, colors, tags, stock, in_stock, is_trending, is_new`
+const PRODUCT_COLUMNS = `id, name, description, price, category, image_url as image, stock, created_at`
 
 export async function getAllProducts(): Promise<Product[]> {
   const result = await query<ProductRow>(`SELECT ${PRODUCT_COLUMNS} FROM products ORDER BY created_at`)

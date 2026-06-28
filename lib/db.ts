@@ -25,7 +25,7 @@ function createPool(): Pool {
     host: pghost,
     user: process.env.PGUSER || "admin",
     database: process.env.PGDATABASE || "postgres",
-    password: () => signer.getDbConnectAdminAuthToken(),
+    password: async () => signer.getDbConnectAdminAuthToken(),
     port: 5432,
     ssl: true,
     max: 20,
