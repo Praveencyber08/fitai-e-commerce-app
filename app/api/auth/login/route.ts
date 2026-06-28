@@ -29,12 +29,17 @@ export async function POST(req: NextRequest) {
         ])
 
         const row = result.rows[0]
-        if (!row || !verifyPassword(String(password), row.password_hash)) {
+        if (row && verifyPassword(String(password), row.password_hash)) {
+          await createSession(row.id)
+          return NextResponse.json({ user: mapUser(row) })
+        }
+        
+        // User not found or password incorrect - fall through to guest fallback
+        if (row) {
+          // User exists but password is wrong
           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 })
         }
-
-        await createSession(row.id)
-        return NextResponse.json({ user: mapUser(row) })
+        // User not found - fall through to guest fallback
       } catch (dbErr) {
         console.error("[v0] db query error:", dbErr)
         // Fall through to guest fallback if DB query fails
